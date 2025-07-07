@@ -4,14 +4,18 @@ run:
   out_dir: "eval_results"
   device: cuda
   report_to: console
-  run_id: test-run
+  run_id: test-run-qwen2.5-vl-3b
   log_images: false
+  api:
+    key: "EMPTY"
+    base_url: "http://localhost:8010/v1"
 
 # Model configuration
 model:
-  name: "/data/wdy/Downloads/models/StarVector/starvector-1b-im2svg"   # Required: Model name for HF-based model
+  name: "/data/wdy/Downloads/models/Qwen/Qwen2.5-VL-3B-Instruct"   # Required: Model name for HF-based model
+  vllm_served_name: "Qwen2.5-VL-3B-Instruct"
   from_checkpoint: false
-  generation_engine: "hf"
+  generation_engine: "vllm-api"
   task: im2svg
   torch_dtype: float16
   # image_processor: clip # is this needed?
