@@ -55,6 +55,9 @@ class SVGMetrics:
     def batch_contains_svg(self, batch):
         return "gt_svg" in batch and "gen_svg" in batch
 
+    def get_sample_id(self, json_item):
+        return json_item.get('outpath_filename') or json_item.get('sample_id')
+
     def calculate_metrics(self, batch, update=True):
         if not self.batch_contains_raster(batch):
             batch["gt_im"] = [rasterize_svg(svg) for svg in batch["gt_svg"]]
@@ -63,12 +66,13 @@ class SVGMetrics:
         avg_results_dict = {}
         all_results_dict = {}
 
-        def get_sample_id(json_item):
-            return json_item.get('outpath_filename') or json_item.get('sample_id')
+        # def get_sample_id(json_item):
+        #     return json_item.get('outpath_filename') or json_item.get('sample_id')
 
         # initialize all_results_dict
         for i, json_item in enumerate(batch['json']):
-            sample_id = get_sample_id(json_item)
+            # sample_id = get_sample_id(json_item)
+            sample_id = self.get_sample_id(json_item)
             if sample_id is None:
                 raise ValueError(f"Could not find 'outpath_filename' or 'sample_id' in batch['json'][{i}]")
             all_results_dict[sample_id] = {}
@@ -83,7 +87,8 @@ class SVGMetrics:
                 
                 # Store individual results
                 for i, result in enumerate(list_result):
-                    sample_id = get_sample_id(batch['json'][i])
+                    # sample_id = get_sample_id(batch['json'][i])
+                    sample_id = self.get_sample_id(batch['json'][i])
                     all_results_dict[sample_id][metric_name] = result
             
             # Handle FID metrics that only return average
@@ -119,7 +124,8 @@ class SVGMetrics:
         metric_key = metric_name.replace('avg_', '').replace('ratio_', '')
         
         for item in batch['json']:
-            sample_id = get_sample_id(item)
+            # sample_id = get_sample_id(item)
+            sample_id = self.get_sample_id(item)
             value = item[metric_key]
             all_results_dict[sample_id][metric_name] = value
             metric.update(value, 1)

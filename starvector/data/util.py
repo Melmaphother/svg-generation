@@ -86,8 +86,18 @@ def is_valid_svg(svg_text):
         return False
 
 def clean_svg(svg_text, output_width=None, output_height=None):
+    # Remove Start ```svg and End ```
+    svg_text = re.sub(r"^\s*```svg\s*", "", svg_text, flags=re.IGNORECASE)
+    svg_text = re.sub(r"\s*```\s*$", "", svg_text)
+
+    # Find First <svg and Last </svg>
+    match = re.search(r"<svg.*</svg>", svg_text, re.DOTALL | re.IGNORECASE)
+
+    if match:
+        svg_text = match.group(0) # Extract the matched string
+
     soup = BeautifulSoup(svg_text, 'xml') # Read as soup to parse as xml
-    svg_bs4 = soup.prettify() # Prettify to get a string
+    svg_bs4 = soup.prettify() # Prettify to get a string for cairosvg
 
     # Store the original signal handler
     import signal
