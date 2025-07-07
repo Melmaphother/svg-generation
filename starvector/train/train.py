@@ -247,9 +247,9 @@ def main(config=None):
                 loss_meter.update(loss.detach().item(), batch['image'].shape[0])
                 if accelerator.sync_gradients:
                     accelerator.clip_grad_norm_(model.parameters(), 1.0)
-                optimizer.step()
-                lr_scheduler.step()
-                optimizer.zero_grad()
+                    optimizer.step()
+                    lr_scheduler.step()
+                    optimizer.zero_grad()
             if accelerator.sync_gradients:
                 progress_bar.update(1)
                 global_step += 1

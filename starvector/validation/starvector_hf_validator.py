@@ -55,10 +55,13 @@ class StarVectorHFSVGValidator(SVGValidator):
         if config.model.from_checkpoint:
             self.model = AutoModelForCausalLM.from_pretrained(self.resume_from_checkpoint, trust_remote_code=True, torch_dtype=self.torch_dtype).to(config.run.device)
         else:
+            print(f"[DEBUG] Loading model from {config.model.name}")
             self.model = AutoModelForCausalLM.from_pretrained(config.model.name, trust_remote_code=True, torch_dtype=self.torch_dtype).to(config.run.device)
         
         self.tokenizer = self.model.model.svg_transformer.tokenizer
         self.svg_end_token_id = self.tokenizer.encode("</svg>")[0] 
+        self.processor = AutoProcessor.from_pretrained(config.model.name)
+        self.get_dataloader()
 
     def get_dataloader(self):
         self.dataset = SVGValDataset(self.config.dataset.dataset_name, self.config.dataset.config_name, self.config.dataset.split, self.config.dataset.im_size, self.config.dataset.num_samples, self.processor)

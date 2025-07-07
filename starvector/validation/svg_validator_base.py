@@ -29,7 +29,7 @@ class SVGValidator(ABC):
     def __init__(self, config):
         self.task = config.model.task
         # Flag to determine if we should report to wandb
-        self.report_to_wandb = config.run.report_to == 'wandb'
+        self.report_to_wandb = True if config.run.report_to == 'wandb' else False
         date_time = datetime.now().strftime("%Y%m%d_%H%M%S")
 
         if config.model.from_checkpoint:
@@ -222,6 +222,7 @@ class SVGValidator(ABC):
             res = results[i]
             res['sample_id'] = sample_id
             res['gt_svg'] = sample
+            res['caption'] = batch['caption'][i] if self.config.model.task == "text2svg" else ""
             
             sample_dir = os.path.join(out_path, sample_id)
             os.makedirs(sample_dir, exist_ok=True)
@@ -246,8 +247,10 @@ class SVGValidator(ABC):
                     res['svg'],
                     res['svg_raw'],
                     res['gt_svg'],
-                    res['no_compile'],
+                    # res['no_compile'],
+                    res['non_compiling'],
                     res['post_processed'],
+                    res['caption'],
                     wandb.Image(gt_svg_raster),
                     wandb.Image(svg_raster),
                     None  # Placeholder for comparison_image
@@ -298,6 +301,14 @@ class SVGValidator(ABC):
     def validate(self):
         """Main validation loop"""        
         for i, batch in enumerate(tqdm(self.dataloader, desc="Validating")):
+            print("[DEBUG] type(batch):", type(batch))
+            print("[DEBUG] batch.keys():", batch.keys())
+            if self.config.model.task == "text2svg":
+                # caption_blip2, caption_cogvlm, caption_llava
+                # add 'caption' to batch
+                print("[DEBUG] Caption key:", self.config.dataset.caption_key)
+                batch['caption'] = batch[self.config.dataset.caption_key]
+
             if self.config.generation_params.generation_sweep:
                 results = self.run_temperature_sweep(batch)
             else:
@@ -321,6 +332,8 @@ class SVGValidator(ABC):
     def calculate_and_save_metrics(self):
         """Calculate and save metrics"""
         batch_results = self.preprocess_results()
+        print("[DEBUG] batch_results.keys():", batch_results.keys())
+        print("[DEBUG] batch_results['caption']:", batch_results['caption'][0])
         avg_results, all_results = self.metrics.calculate_metrics(batch_results)
         
         out_path_results = os.path.join(self.out_dir, 'results')
@@ -351,6 +364,7 @@ class SVGValidator(ABC):
             'gt_svg': [],
             'gen_im': [],
             'gt_im': [],
+            'caption': [],
             'json': []
         }
 
@@ -366,6 +380,7 @@ class SVGValidator(ABC):
             batch['gt_svg'].append(result['gt_svg'])
             batch['gen_im'].append(result['gen_im'])
             batch['gt_im'].append(result['gt_im'])
+            batch['caption'].append(result['caption'])
             batch['json'].append(result)
 
         return batch
@@ -385,7 +400,8 @@ class SVGValidator(ABC):
                 'svg': text,
                 'svg_raw': text,
                 'post_processed': False,
-                'no_compile': False
+                # 'no_compile': False
+                'non_compiling': False
             }
         except:
             try:
@@ -395,14 +411,16 @@ class SVGValidator(ABC):
                     'svg': cleaned_svg,
                     'svg_raw': text,
                     'post_processed': True,
-                    'no_compile': False
+                    # 'no_compile': False
+                    'non_compiling': False
                 }
             except:
                 return {
                     'svg': use_placeholder(),
                     'svg_raw': text,
                     'post_processed': True,
-                    'no_compile': True
+                    # 'no_compile': True
+                    'non_compiling': True
                 }
     
 
@@ -439,9 +457,16 @@ class SVGValidator(ABC):
             try:
                 import wandb
                 table = wandb.Table(columns=[
-                    "sample_id", "svg", "svg_raw", "svg_gt",
-                    "no_compile", "post_processed",
-                    "original_image", "generated_image", "comparison_image"
+                    "sample_id", 
+                    "svg", 
+                    "svg_raw", 
+                    "svg_gt",
+                    # "no_compile", 
+                    "non_compiling",
+                    "post_processed",
+                    "original_image", 
+                    "generated_image", 
+                    "comparison_image"
                 ])
                 for row in self.table_data.values():
                     table.add_data(*row)
