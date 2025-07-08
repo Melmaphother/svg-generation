@@ -179,3 +179,5 @@ cython_debug/
 *internal*
 *test.png*
 assets/reward_assets
+
+sft/LLaMA-Factory
