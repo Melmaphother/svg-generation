@@ -102,7 +102,6 @@ def clean_svg(svg_text, output_width=None, output_height=None):
     # Store the original signal handler
     import signal
     original_handler = signal.getsignal(signal.SIGALRM)
-    
     try:
         # Set a timeout to prevent hanging
         def timeout_handler(signum, frame):
@@ -111,7 +110,7 @@ def clean_svg(svg_text, output_width=None, output_height=None):
         # Set timeout
         signal.signal(signal.SIGALRM, timeout_handler)
         signal.alarm(5)
-        
+
         # Try direct conversion without BeautifulSoup
         svg_cairo = cairosvg.svg2svg(svg_bs4, output_width=output_width, output_height=output_height).decode()
         

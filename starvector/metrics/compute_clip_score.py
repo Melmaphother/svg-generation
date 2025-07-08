@@ -24,7 +24,7 @@ class CLIPScoreCalculator(BaseMetric):
         tensor_gen_imgs = [transforms.ToTensor()(img) for img in gen_imgs]
         return tensor_gen_imgs, captions
 
-    def calculate_score(self, batch, batch_size=512, update=True):
+    def calculate_score(self, batch, batch_size=16, update=True):
         gen_images = batch['gen_im']
         captions = batch['caption']
 
