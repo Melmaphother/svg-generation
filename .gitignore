@@ -181,3 +181,5 @@ cython_debug/
 assets/reward_assets
 
 sft/LLaMA-Factory
+sft/data_preparation/*.json
+eval_results*/

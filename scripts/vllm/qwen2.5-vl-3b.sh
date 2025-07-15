@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # 设置 CUDA 可见设备（如果需要的话）
-export CUDA_VISIBLE_DEVICES=1
+export CUDA_VISIBLE_DEVICES=7
 
 BASE_PATH=/data/wdy/Downloads/models/Qwen
 MODEL_NAME=Qwen2.5-VL-3B-Instruct
